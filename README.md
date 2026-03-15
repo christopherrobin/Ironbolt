@@ -8,7 +8,6 @@ Fast, type-safe API in a box. Clone it, connect a database, add your endpoints, 
 [![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0-6BA539?style=for-the-badge&logo=openapiinitiative&logoColor=white)](https://swagger.io/specification/)
-[![License](https://img.shields.io/badge/license-MIT-333333?style=for-the-badge)](LICENSE)
 
 ## Why Ironbolt?
 
