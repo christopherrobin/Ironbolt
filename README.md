@@ -21,19 +21,15 @@ Every time you need an API for a client project, a side project, or a prototype,
 
 ## Stack
 
-| Layer | Tool |
-|---|---|
-| Framework | **Fastify 5** with Pino logging |
-| Language | **TypeScript** strict mode + `noUncheckedIndexedAccess` |
-| Validation | **Zod 4** — runtime validation, types, and OpenAPI spec |
-| Database | **Prisma 7** + **PostgreSQL** |
-| Auth | **jose** (JWT) + **bcryptjs** (password hashing) |
-| Error handling | **@fastify/error** — centralized, typed errors |
-| Rate limiting | **@fastify/rate-limit** — global + per-route |
-| API docs | **@fastify/swagger** + **Swagger UI** |
-| Testing | **Vitest** |
-| Linting | **ESLint** (`strictTypeChecked`) + **Prettier** |
-| Deployment | **Railway** (no Docker) |
+**Core:** Fastify 5, TypeScript (strict), Zod 4, Prisma 7, PostgreSQL
+
+**Auth:** jose (JWT), bcryptjs (password hashing), @fastify/rate-limit
+
+**API docs:** @fastify/swagger + Swagger UI, auto-generated OpenAPI 3.0 spec
+
+**Quality:** Vitest, ESLint (strictTypeChecked), Prettier
+
+**Infra:** @t3-oss/env-core (env validation), @fastify/error (typed errors), Pino (logging), Railway (deployment, no Docker)
 
 ## Quick Start
 
@@ -51,18 +47,6 @@ npm run dev
 ```
 
 The API starts at `http://localhost:3000`. Swagger UI is at `http://localhost:3000/docs`.
-
-## Environment Variables
-
-| Variable | Description | Required |
-|---|---|---|
-| `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `JWT_SECRET` | Secret for signing JWTs (min 32 chars) | Yes |
-| `PORT` | Server port (default: `3000`) | No |
-| `CORS_ORIGIN` | Allowed origin(s) for CORS — single URL, comma-separated, or `*` (default: `http://localhost:5173`) | No |
-| `NODE_ENV` | `development`, `production`, or `test` (default: `development`) | No |
-
-All env vars are validated at startup with Zod via `@t3-oss/env-core`. If anything is missing or invalid, the app fails fast with a clear error.
 
 ## Endpoints
 
@@ -126,18 +110,30 @@ prisma/
 | `npm run db:migrate` | Run Prisma migrations |
 | `npm run db:studio` | Open Prisma Studio |
 
+## Environment Variables
+
+| Variable | Description | Required |
+|---|---|---|
+| `DATABASE_URL` | PostgreSQL connection string | Yes |
+| `JWT_SECRET` | Secret for signing JWTs (min 32 chars) | Yes |
+| `PORT` | Server port (default: `3000`) | No |
+| `CORS_ORIGIN` | Allowed origin(s) for CORS: single URL, comma-separated, or `*` (default: `http://localhost:5173`) | No |
+| `NODE_ENV` | `development`, `production`, or `test` (default: `development`) | No |
+
+All env vars are validated at startup with Zod via `@t3-oss/env-core`. If anything is missing or invalid, the app fails fast with a clear error.
+
 ## Security
 
-- **Passwords** — bcrypt with 12 salt rounds, capped at 72 characters
-- **JWTs** — 1 hour expiration, HS256 signing. Implement a refresh token mechanism for production.
-- **Rate limiting** — 100 req/min global, 10 req/min on auth endpoints
-- **Timing attacks** — constant-time bcrypt comparison prevents user enumeration
-- **Error handling** — global error handler hides internal details in production
-- **Env validation** — rejects the default placeholder JWT secret at startup
+- **Passwords.** bcrypt with 12 salt rounds, capped at 72 characters.
+- **JWTs.** 1 hour expiration, HS256 signing. Implement a refresh token mechanism for production.
+- **Rate limiting.** 100 req/min global, 10 req/min on auth endpoints.
+- **Timing attacks.** Constant-time bcrypt comparison prevents user enumeration.
+- **Error handling.** Global error handler hides internal details in production.
+- **Env validation.** Rejects the default placeholder JWT secret at startup.
 
 ## Deployment
 
-Designed for Railway — deploy both the API and PostgreSQL database. No Docker required. Set the environment variables in the Railway dashboard and it runs.
+Designed for Railway. Deploy both the API and PostgreSQL database. No Docker required. Set the environment variables in the Railway dashboard and it runs.
 
 ## License
 
