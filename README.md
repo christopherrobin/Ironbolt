@@ -12,12 +12,12 @@ Fast, type-safe API in a box. Clone it, connect a database, add your endpoints, 
 
 ## Why Ironbolt?
 
-Every time you need an API — for a client project, a side project, a prototype — you either start from scratch or wrestle with a bloated boilerplate. Ironbolt is the middle ground: opinionated enough to be useful, minimal enough to understand in an afternoon.
+Every time you need an API for a client project, a side project, or a prototype, you either start from scratch or wrestle with a bloated boilerplate. Ironbolt is the middle ground: opinionated enough to be useful, minimal enough to understand in an afternoon.
 
-- **Type-safe end-to-end** — Zod schemas are the single source of truth for validation, TypeScript types, and OpenAPI spec generation
-- **Auth out of the box** — JWT registration and login with bcrypt hashing, timing-safe comparisons, and rate limiting
-- **OpenAPI for free** — every endpoint you add automatically appears in the generated spec and Swagger UI
-- **Production-aware** — global error handler, graceful shutdown, env validation at startup, Swagger UI disabled in production
+- **Type-safe end-to-end.** Zod schemas are the single source of truth for validation, TypeScript types, and OpenAPI spec generation. Consumers generate fully typed clients from your running API with a single command.
+- **Auth out of the box.** JWT registration and login with bcrypt hashing, timing-safe comparisons, rate limiting, and centralized error handling.
+- **OpenAPI for free.** Every endpoint you add automatically appears in the generated spec and Swagger UI.
+- **Production-ready defaults.** Global error handler that hides internals in production, env validation at startup, graceful shutdown, and Swagger UI disabled in production.
 
 ## Stack
 
