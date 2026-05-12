@@ -1,4 +1,7 @@
 import http from 'node:http';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import Fastify, { FastifyError } from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
@@ -9,6 +12,12 @@ import { env } from './env.js';
 import { prisma } from './db/client.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
+
+// Read project metadata so OpenAPI title/description/version stay in sync
+// with package.json — no fork has to remember to edit hardcoded strings.
+const pkg: { name: string; version: string; description?: string } = JSON.parse(
+  readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'package.json'), 'utf-8'),
+);
 
 function parseCorsOrigin(value: string): boolean | string | string[] {
   if (value === '*') return true;
@@ -62,9 +71,9 @@ export async function buildApp() {
   await app.register(swagger, {
     openapi: {
       info: {
-        title: 'Ironbolt API',
-        description: 'Fast, type-safe API',
-        version: '0.1.0',
+        title: pkg.name,
+        description: pkg.description ?? '',
+        version: pkg.version,
       },
       components: {
         securitySchemes: {
