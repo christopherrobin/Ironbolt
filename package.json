@@ -1,6 +1,6 @@
 {
   "name": "ironbolt",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Fast, type-safe API in a box",
   "type": "module",
   "scripts": {
