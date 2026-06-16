@@ -7,7 +7,7 @@ import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
-import { ZodError } from 'zod';
+import { ZodError, z } from 'zod';
 import { env } from './env.js';
 import { prisma } from './db/client.js';
 import { healthRoutes } from './routes/health.js';
@@ -20,9 +20,22 @@ import './batch/register.js';
 
 // Read project metadata so OpenAPI title/description/version stay in sync
 // with package.json — no fork has to remember to edit hardcoded strings.
-const pkg: { name: string; version: string; description?: string } = JSON.parse(
-  readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'package.json'), 'utf-8'),
-);
+// zod-validated so the JSON.parse result is typed (not `any`) and a
+// malformed package.json fails loudly at startup.
+const pkg = z
+  .object({
+    name: z.string(),
+    version: z.string(),
+    description: z.string().optional(),
+  })
+  .parse(
+    JSON.parse(
+      readFileSync(
+        path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'package.json'),
+        'utf-8',
+      ),
+    ),
+  );
 
 function parseCorsOrigin(value: string): boolean | string | string[] {
   if (value === '*') return true;

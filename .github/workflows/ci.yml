@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Cancel prior in-flight runs for the same branch when a new push lands
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least-privilege: this workflow only reads the repo
+permissions:
+  contents: read
+
+# CI-only fake values — env.ts Zod schema requires these. Real prod env
+# lives in Railway; the lint/build/openapi jobs never touch a database.
+env:
+  DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+  JWT_SECRET: ci-only-fake-secret-must-be-at-least-32-chars-long
+  CORS_ORIGIN: http://localhost:5173
+  NODE_ENV: test
+  BATCH_TOKEN_SAMPLE: ci-only-fake-sample-batch-token-at-least-32-chars
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run lint
+
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run build
+
+  openapi-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run openapi:check
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Postgres service so the DB-gated integration tests (incl. the batch
+    # route tests in src/routes/batch.test.ts) actually run instead of
+    # ctx.skip()-ing. Without this, the batch feature ships unexercised.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npx prisma db push --accept-data-loss
+      - run: npm run test:run
