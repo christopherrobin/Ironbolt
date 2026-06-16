@@ -53,6 +53,7 @@ The API starts at `http://localhost:3000`. Swagger UI is at `http://localhost:30
 |---|---|---|---|
 | `POST` | `/auth/register` | Create account, returns JWT | No |
 | `POST` | `/auth/login` | Login, returns JWT | No |
+| `POST` | `/:resource/batch` | Idempotent batch upsert from a trusted service | Service token |
 | `GET` | `/health` | Health check | No |
 | `GET` | `/docs` | Swagger UI (dev only) | No |
 | `GET` | `/docs/json` | OpenAPI JSON spec | No |
@@ -73,6 +74,93 @@ The OpenAPI spec updates automatically. Frontend consumers generate types with:
 ```bash
 npx openapi-typescript http://localhost:3000/docs/json -o ./types/api.ts
 ```
+
+## Batch Upsert (`POST /:resource/batch`)
+
+A generic, idempotent batch upsert endpoint for trusted services (scrapers, ETL jobs, importers) that want to write rows into a Prisma model without race conditions.
+
+### Contract
+
+Request:
+```json
+{
+  "items": [
+    { "idempotencyKey": "natural-key-1", "data": { /* per-resource shape */ } },
+    { "idempotencyKey": "natural-key-2", "data": { /* ... */ } }
+  ]
+}
+```
+
+Response (always 200 for well-formed envelopes — per-item failures are reported in `rejected`):
+```json
+{
+  "accepted": [{ "idempotencyKey": "natural-key-1", "id": "<new row id>" }],
+  "rejected": [
+    { "idempotencyKey": "natural-key-2", "reason": "duplicate" }
+  ]
+}
+```
+
+Rejection reasons:
+- `duplicate` — the `idempotencyKey` already exists. **First write wins.** A re-send does NOT update the existing row. Clients (e.g. Harvester-Kit's `batch-api-sink`) count duplicates as success.
+- `validation_error` — `data` failed the resource's Zod schema. `detail` carries a short reason.
+- `internal_error` — anything else (DB error, programmer error). `detail` is a truncated message.
+
+Whole-batch failures:
+- `400` — malformed envelope (missing `items`, more than 200 entries, etc.). Programmer error, never retried.
+- `401` — missing/invalid service token.
+- `404` — unknown resource (no `registerBatchResource()` call for that name).
+
+### Adding a resource in your fork
+
+1. Add the model to `prisma/schema.prisma`. It MUST have a `String @unique` field mapped to `idempotency_key`:
+
+   ```prisma
+   model Widget {
+     id             String   @id @default(uuid(7))
+     idempotencyKey String   @unique @map("idempotency_key")
+     name           String
+     price          Decimal
+     createdAt      DateTime @default(now()) @map("created_at")
+     updatedAt      DateTime @updatedAt      @map("updated_at")
+     @@map("widgets")
+   }
+   ```
+
+2. Register it in `src/batch/register.ts`:
+
+   ```ts
+   registerBatchResource('widget', {
+     prismaModel: 'widget',
+     itemSchema: z.object({
+       name: z.string().min(1),
+       price: z.coerce.number().positive(),
+     }),
+     serviceTokenEnv: 'BATCH_TOKEN_WIDGET',
+   });
+   ```
+
+3. Set the token: `BATCH_TOKEN_WIDGET=<random-32-char-secret>` in your env.
+
+4. `yarn db:push` (or `db:migrate`), then `yarn openapi:dump` to refresh the snapshot.
+
+The kit itself ships only a demo `Sample` model so it builds and serves out of the box. Forks typically remove `Sample` once they've added their own resources.
+
+### OpenAPI snapshot
+
+`openapi.snapshot.json` at the repo root is the committed spec consumed by downstream clients (e.g. Harvester-Kit). Regenerate after any route or schema change:
+
+```bash
+yarn openapi:dump
+```
+
+To verify the committed snapshot is in sync with the live routes:
+
+```bash
+yarn openapi:check   # runs the dump + `git diff --exit-code`
+```
+
+Wire `openapi:check` into your CI to catch unintended drift.
 
 ## Project Structure
 
@@ -108,6 +196,8 @@ prisma/
 | `npm run db:push` | Push schema to database |
 | `npm run db:migrate` | Run Prisma migrations |
 | `npm run db:studio` | Open Prisma Studio |
+| `npm run openapi:dump` | Write `openapi.snapshot.json` from the live spec |
+| `npm run openapi:check` | Run dump + `git diff --exit-code openapi.snapshot.json` (CI) |
 
 ## Environment Variables
 
@@ -118,6 +208,8 @@ prisma/
 | `PORT` | Server port (default: `3000`) | No |
 | `CORS_ORIGIN` | Allowed origin(s) for CORS: single URL, comma-separated, or `*` (default: `http://localhost:5173`) | No |
 | `NODE_ENV` | `development`, `production`, or `test` (default: `development`) | No |
+| `BATCH_TOKEN_<RESOURCE>` | Per-resource service token for `POST /:resource/batch`. One per registered resource. | If using batch |
+| `BATCH_CONCURRENCY` | Per-item concurrency for batch processing (default: `8`) | No |
 
 All env vars are validated at startup with Zod via `@t3-oss/env-core`. If anything is missing or invalid, the app fails fast with a clear error.
 

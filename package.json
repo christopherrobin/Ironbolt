@@ -1,6 +1,6 @@
 {
   "name": "ironbolt",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Fast, type-safe API in a box",
   "type": "module",
   "scripts": {
@@ -14,7 +14,9 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "openapi:dump": "tsx scripts/dump-openapi.ts",
+    "openapi:check": "yarn openapi:dump && git diff --exit-code openapi.snapshot.json"
   },
   "engines": {
     "node": ">=20"

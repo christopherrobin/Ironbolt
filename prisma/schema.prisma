@@ -15,3 +15,17 @@ model User {
 
   @@map("users")
 }
+
+// Demo resource for the batch upsert endpoint. Forks should add their
+// own model(s) following this shape (id + unique idempotencyKey + the
+// payload columns they care about) and register them via
+// `registerBatchResource()` in src/batch/register.ts.
+model Sample {
+  id             String   @id @default(uuid(7))
+  idempotencyKey String   @unique @map("idempotency_key")
+  payload        Json
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("samples")
+}

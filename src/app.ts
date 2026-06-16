@@ -12,6 +12,11 @@ import { env } from './env.js';
 import { prisma } from './db/client.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
+import { batchRoutes } from './routes/batch.js';
+// Side-effect import: registers the demo `sample` resource so the
+// template is runnable out of the box. Forks add their own
+// `registerBatchResource()` calls in src/batch/register.ts.
+import './batch/register.js';
 
 // Read project metadata so OpenAPI title/description/version stay in sync
 // with package.json — no fork has to remember to edit hardcoded strings.
@@ -95,6 +100,7 @@ export async function buildApp() {
 
   await app.register(healthRoutes);
   await app.register(authRoutes);
+  await app.register(batchRoutes);
 
   return app;
 }
