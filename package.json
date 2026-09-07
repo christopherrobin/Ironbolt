@@ -28,13 +28,13 @@
     "@fastify/rate-limit": "^11.2.0",
     "@fastify/swagger": "^9.8.1",
     "@fastify/swagger-ui": "^6.0.0",
-    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.8.0",
     "@t3-oss/env-core": "^0.13.11",
     "bcryptjs": "^3.0.3",
-    "fastify": "^5.12.1",
-    "jose": "^6.2.10",
-    "zod": "^4.4.3"
+    "fastify": "^5.12.3",
+    "jose": "^6.2.11",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
