@@ -7,13 +7,31 @@ updates:
       day: 'monday'
     open-pull-requests-limit: 5
     groups:
+      # Security fixes arrive as one PR per run instead of one per advisory.
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - '*'
+      # Restricted to minor/patch: an unrestricted group sweeps majors in,
+      # and one breaking major fails CI for the whole batch. Majors still
+      # arrive as individual PRs that can be evaluated on their own.
       dev-dependencies:
+        applies-to: version-updates
         dependency-type: 'development'
+        update-types:
+          - 'minor'
+          - 'patch'
       production-dependencies:
+        applies-to: version-updates
         dependency-type: 'production'
         update-types:
           - 'minor'
           - 'patch'
+    ignore:
+      # TypeScript 7: blocked until typescript-eslint and ts-jest support it.
+      - dependency-name: 'typescript'
+        update-types:
+          - 'version-update:semver-major'
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
