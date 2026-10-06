@@ -155,13 +155,13 @@ The kit itself ships only a demo `Sample` model so it builds and serves out of t
 `openapi.snapshot.json` at the repo root is the committed spec consumed by downstream clients (e.g. Harvester-Kit). Regenerate after any route or schema change:
 
 ```bash
-yarn openapi:dump
+npm run openapi:dump
 ```
 
 To verify the committed snapshot is in sync with the live routes:
 
 ```bash
-yarn openapi:check   # runs the dump + `git diff --exit-code`
+npm run openapi:check   # runs the dump + `git diff --exit-code`
 ```
 
 Wire `openapi:check` into your CI to catch unintended drift.
@@ -178,7 +178,10 @@ src/
     jwt.ts              # JWT sign/verify (jose)
     errors.ts           # Centralized error types (@fastify/error)
     zod-to-json.ts      # Zod → OpenAPI JSON Schema
-  middleware/auth.ts     # Bearer token authentication
+  middleware/
+    auth.ts             # Bearer token authentication
+    service-token-auth.ts  # Per-resource service tokens for batch routes
+  batch/                # Generic batch upsert (registry, handler, schemas)
   routes/               # Route handlers
   schemas/              # Zod schemas (source of truth)
   services/             # Business logic

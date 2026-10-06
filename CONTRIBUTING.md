@@ -13,7 +13,7 @@ npm run db:generate && npm run db:push
 
 ## Before opening a pull request
 
-Run the same checks CI runs:
+Run the same checks CI runs. The database tests expect a local Postgres at `postgresql://test:test@localhost:5432/test` with the schema pushed (`DATABASE_URL=postgresql://test:test@localhost:5432/test npm run db:push`); without it, those suites skip.
 
 ```bash
 npm run lint && npm run build && npm run openapi:check && npm run test:run

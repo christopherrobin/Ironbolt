@@ -69,6 +69,8 @@ function truncateDetail(message: string): string {
  *        `meta.driverAdapterError.cause.constraint.index: string`
  *      plus the table in `cause.table` / `meta.table`. The column is
  *      recovered from Postgres's default `<table>_<column>_key` name.
+ *      Names Postgres truncates (over 63 bytes) or custom `map:` names
+ *      don't match, so those collisions fall back to `internal_error`.
  *
  * All are supported so the kit works regardless of whether a fork
  * sticks with the adapter pattern or swaps to the native client.
