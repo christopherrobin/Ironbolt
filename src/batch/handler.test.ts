@@ -69,3 +69,36 @@ describe('isDuplicateKeyError', () => {
     expect(isDuplicateKeyError(buildP2002(undefined))).toBe(false);
   });
 });
+
+// Shape produced by @prisma/adapter-pg when Postgres names the violated
+// constraint: `constraint.index` instead of `constraint.fields`.
+function buildAdapterP2002(index: string, table: string | undefined): unknown {
+  return new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+    code: 'P2002',
+    clientVersion: 'test',
+    meta: {
+      driverAdapterError: {
+        cause: { kind: 'UniqueConstraintViolation', constraint: { index }, table },
+      },
+    },
+  });
+}
+
+describe('isDuplicateKeyError (driver adapter, constraint index)', () => {
+  it('matches the default Postgres unique index name for the column', () => {
+    expect(isDuplicateKeyError(buildAdapterP2002('samples_idempotency_key_key', 'samples'))).toBe(true);
+  });
+
+  it('does NOT match a composite unique index', () => {
+    expect(isDuplicateKeyError(buildAdapterP2002('samples_tenant_id_idempotency_key_key', 'samples'))).toBe(false);
+  });
+
+  it('does NOT match an index on another table or column', () => {
+    expect(isDuplicateKeyError(buildAdapterP2002('samples_idempotency_key_key', 'other'))).toBe(false);
+    expect(isDuplicateKeyError(buildAdapterP2002('samples_email_key', 'samples'))).toBe(false);
+  });
+
+  it('returns false when the table is unknown', () => {
+    expect(isDuplicateKeyError(buildAdapterP2002('samples_idempotency_key_key', undefined))).toBe(false);
+  });
+});

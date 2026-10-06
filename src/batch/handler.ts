@@ -58,14 +58,19 @@ function truncateDetail(message: string): string {
  * normalised to a string array. Returns `null` if the error doesn't
  * carry constraint info.
  *
- * Prisma 7 reports unique-constraint violations in two different
- * shapes depending on driver:
+ * Prisma 7 reports unique-constraint violations in several shapes
+ * depending on driver:
  *   1. Legacy / native client: `meta.target` is `string | string[]`.
  *   2. Driver-adapter (e.g. `@prisma/adapter-pg`, which this template
- *      uses):
+ *      uses), when the database reports the columns:
  *        `meta.driverAdapterError.cause.constraint.fields: string[]`
+ *   3. Driver-adapter when the database reports the constraint name —
+ *      what Postgres does for every `@unique` column:
+ *        `meta.driverAdapterError.cause.constraint.index: string`
+ *      plus the table in `cause.table` / `meta.table`. The column is
+ *      recovered from Postgres's default `<table>_<column>_key` name.
  *
- * Both are supported so the kit works regardless of whether a fork
+ * All are supported so the kit works regardless of whether a fork
  * sticks with the adapter pattern or swaps to the native client.
  */
 function extractP2002Fields(meta: unknown): string[] | null {
@@ -77,11 +82,20 @@ function extractP2002Fields(meta: unknown): string[] | null {
   if (adapterErr && typeof adapterErr === 'object') {
     const cause = (adapterErr as { cause?: unknown }).cause;
     if (cause && typeof cause === 'object') {
-      const constraint = (cause as { constraint?: unknown }).constraint;
-      if (constraint && typeof constraint === 'object') {
-        const fields = (constraint as { fields?: unknown }).fields;
+      const c = cause as { constraint?: unknown; table?: unknown };
+      if (c.constraint && typeof c.constraint === 'object') {
+        const { fields, index } = c.constraint as { fields?: unknown; index?: unknown };
         if (Array.isArray(fields) && fields.every((f) => typeof f === 'string')) {
           return fields;
+        }
+        // Exact `<table>_<column>_key` match only, so a composite
+        // unique (`<table>_<a>_<b>_key`) or a custom-named index never
+        // resolves to a single idempotency column.
+        const table = typeof c.table === 'string' ? c.table : m.table;
+        if (typeof index === 'string' && typeof table === 'string') {
+          for (const column of IDEMPOTENCY_TARGETS) {
+            if (index === `${table}_${column}_key`) return [column];
+          }
         }
       }
     }

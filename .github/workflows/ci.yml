@@ -69,13 +69,17 @@ jobs:
     # Postgres service so the DB-gated integration tests (incl. the batch
     # route tests in src/routes/batch.test.ts) actually run instead of
     # ctx.skip()-ing. Without this, the batch feature ships unexercised.
+    # The credentials must match the DATABASE_URL hard-coded in
+    # src/test/setup.ts; otherwise the probe fails and the suites skip.
+    env:
+      DATABASE_URL: postgresql://test:test@localhost:5432/test
     services:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: ci
-          POSTGRES_PASSWORD: ci
-          POSTGRES_DB: ci
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
         ports:
           - 5432:5432
         options: >-
