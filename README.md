@@ -1,5 +1,7 @@
 # Ironbolt ⚡
 
+[![CI](https://github.com/christopherrobin/Ironbolt/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/christopherrobin/Ironbolt/actions/workflows/ci.yml)
+
 Fast, type-safe API in a box. Clone it, connect a database, add your endpoints, ship it.
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -31,6 +33,8 @@ Every time you need an API for a client project, a side project, or a prototype,
 **Infra:** @t3-oss/env-core (env validation), @fastify/error (typed errors), Pino (logging), Railway (deployment, no Docker)
 
 ## Quick Start
+
+Requires Node.js 24+ (a `.nvmrc` is provided — run `nvm use`) and a PostgreSQL database.
 
 ```bash
 git clone https://github.com/christopherrobin/Ironbolt.git
@@ -142,7 +146,7 @@ Whole-batch failures:
 
 3. Set the token: `BATCH_TOKEN_WIDGET=<random-32-char-secret>` in your env.
 
-4. `yarn db:push` (or `db:migrate`), then `yarn openapi:dump` to refresh the snapshot.
+4. `npm run db:push` (or `npm run db:migrate`), then `npm run openapi:dump` to refresh the snapshot.
 
 The kit itself ships only a demo `Sample` model so it builds and serves out of the box. Forks typically remove `Sample` once they've added their own resources.
 
