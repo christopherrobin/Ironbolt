@@ -3,7 +3,7 @@
   "info": {
     "title": "ironbolt",
     "description": "Fast, type-safe API in a box",
-    "version": "0.5.0"
+    "version": "1.0.0"
   },
   "components": {
     "securitySchemes": {
