@@ -33,11 +33,11 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@fastify/cors": "^11.3.0",
-    "@fastify/error": "^4.2.0",
-    "@fastify/rate-limit": "^11.2.0",
-    "@fastify/swagger": "^9.9.1",
-    "@fastify/swagger-ui": "^6.0.0",
+    "@fastify/cors": "^11.3.1",
+    "@fastify/error": "^4.2.1",
+    "@fastify/rate-limit": "^11.2.1",
+    "@fastify/swagger": "^9.9.2",
+    "@fastify/swagger-ui": "^6.1.2",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@t3-oss/env-core": "^0.13.11",
